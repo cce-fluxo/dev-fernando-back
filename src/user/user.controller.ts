@@ -3,11 +3,17 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('user')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @ApiOperation({
+    summary: 'Rota para criar um novo usuário no sistema',
+    description: 'Insira email e senha para fazer login no sistema',
+  })
   @IsPublic()
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
