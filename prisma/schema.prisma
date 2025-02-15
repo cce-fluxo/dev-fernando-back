@@ -1,18 +1,196 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Estado {
+  id      Int    @id @default(autoincrement())
+  nome    String @unique
+  paisId  Int
+  pais    Pais   @relation(fields: [paisId], references: [id])
+  cidades Cidade[]
 }
 
-model User {
-  id Int @id @default(autoincrement())
-  email    String @unique
-  password String
-  name String
+model Pais {
+  id      Int      @id @default(autoincrement())
+  nome    String   @unique
+  estados Estado[]
+}
+
+model Bairro {
+  id       Int    @id @default(autoincrement())
+  nome     String
+  cidadeId Int
+  cidade   Cidade @relation(fields: [cidadeId], references: [id])
+  ruas     Rua[]
+}
+
+model Cidade {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  estadoId Int
+  estado   Estado   @relation(fields: [estadoId], references: [id], onDelete: Cascade)
+  bairros  Bairro[]
+}
+
+model Endereco {
+  id     Int  @id @default(autoincrement())
+  ruaId  Int
+  rua    Rua  @relation(fields: [ruaId], references: [id])
+  clinicas Clinica[]
+}
+
+model Rua {
+  id       Int      @id @default(autoincrement())
+  nome     String
+  bairroId Int
+  bairro   Bairro   @relation(fields: [bairroId], references: [id])
+  enderecos Endereco[]
+}
+
+model PlanoSaude {
+  id   Int    @id @default(autoincrement())
+  tipo String @unique
+  medicosClinicas MedicoClinica[]
+}
+
+model Clinica {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  enderecoId Int
+  endereco   Endereco @relation(fields: [enderecoId], references: [id])
+  medicosClinicas MedicoClinica[]
+  agendas    Agenda[]
+}
+
+model Usuario {
+  id         Int    @id @default(autoincrement())
+  nome       String
+  sobrenome  String
+  dataNasc   DateTime
+  email      String @unique
+  senha      String
+  telefone   String
+  foto       String?
+  medico     Medico?
+  paciente   Paciente?
+}
+
+model Medico {
+  id        Int       @id @default(autoincrement())
+  usuarioId Int       @unique
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  crm       String    @unique
+  status    String
+  consultas Consulta[]
+  medicoClinicas MedicoClinica[]
+  agendas   Agenda[]
+  avaliacoes Avaliacao[]
+  denuncias Denuncia[]
+  chats     Chat[]
+}
+
+model Paciente {
+  id         Int       @id @default(autoincrement())
+  usuarioId  Int       @unique
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id])
+  historico  String?
+  consultas  Consulta[]
+  avaliacoes Avaliacao[]
+  denuncias  Denuncia[]
+  chats      Chat[]
+}
+
+model MedicoClinica {
+  id         Int        @id @default(autoincrement())
+  medicoId   Int
+  clinicaId  Int
+  planoId    Int?
+  codigo     String?
+  medico     Medico     @relation(fields: [medicoId], references: [id])
+  clinica    Clinica    @relation(fields: [clinicaId], references: [id])
+  planoSaude PlanoSaude? @relation(fields: [planoId], references: [id])
+}
+
+model Agenda {
+  id         Int      @id @default(autoincrement())
+  medicoId   Int
+  clinicaId  Int
+  dataInicio DateTime
+  dataTermino DateTime
+  horaInicio DateTime
+  horaTermino DateTime
+  status     String
+  medico     Medico   @relation(fields: [medicoId], references: [id])
+  clinica    Clinica  @relation(fields: [clinicaId], references: [id])
+}
+
+model Avaliacao {
+  id         Int      @id @default(autoincrement())
+  medicoId   Int
+  pacienteId Int
+  conteudo   String
+  medico     Medico   @relation(fields: [medicoId], references: [id])
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+}
+
+model Denuncia {
+  id         Int      @id @default(autoincrement())
+  medicoId   Int
+  pacienteId Int
+  status     String
+  conteudo   String
+  medico     Medico   @relation(fields: [medicoId], references: [id])
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+}
+
+model Consulta {
+  id         Int      @id @default(autoincrement())
+  medicoId   Int
+  pacienteId Int
+  dataHora   DateTime
+  status     String
+  tipo       String
+  linkWaze   String?
+  medico     Medico   @relation(fields: [medicoId], references: [id])
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+  prontuario Prontuario?
+  instrucoes Instrucoes[]
+}
+
+model Prontuario {
+  id        Int      @id @default(autoincrement())
+  consultaId Int     @unique
+  consulta  Consulta @relation(fields: [consultaId], references: [id])
+  observacoes String
+}
+
+model Instrucoes {
+  id        Int      @id @default(autoincrement())
+  consultaId Int
+  consulta  Consulta @relation(fields: [consultaId], references: [id])
+  conteudo  String
+}
+
+model Chat {
+  id         Int      @id @default(autoincrement())
+  medicoId   Int
+  pacienteId Int
+  status     String
+  tempoLimite Int
+  medico     Medico   @relation(fields: [medicoId], references: [id])
+  paciente   Paciente @relation(fields: [pacienteId], references: [id])
+  mensagens  Mensagem[]
+}
+
+model Mensagem {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  conteudo  String
+  dataEnvio DateTime
 }
