@@ -82,4 +82,33 @@ export class UsuarioService {
   async remove(id: number): Promise<Usuario> {
     return this.prisma.usuario.delete({ where: { id } });
   }
+
+  async saveResetToken(userId: number, token: string, expiry: Date) {
+    return this.prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        resetToken: token,
+        resetTokenExpiry: expiry,
+      } as Prisma.UsuarioUpdateInput,
+    });
+  }
+
+  async findByResetToken(token: string) {
+    return this.prisma.usuario.findFirst({
+      where: {
+        resetToken: token,
+      } as Prisma.UsuarioWhereInput,
+    });
+  }
+
+  async updatePassword(userId: number, hashedPassword: string) {
+    return this.prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        senha: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+      } as Prisma.UsuarioUpdateInput,
+    });
+  }
 }

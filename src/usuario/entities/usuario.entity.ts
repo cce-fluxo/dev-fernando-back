@@ -7,6 +7,8 @@ export class Usuario {
   dataNasc: Date;
   telefone: string;
   foto?: string;
-  medico?: object | null; // Relacionamento com médico
-  paciente?: object | null; // Relacionamento com paciente
+  medico?: object | null;
+  paciente?: object | null;
+  resetToken?: string | null;
+  resetTokenExpiry?: Date | null;
 }

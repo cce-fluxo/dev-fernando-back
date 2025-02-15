@@ -1,9 +1,21 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
+import { 
+  Injectable, 
+  UnauthorizedException, 
+  ConflictException,
+  NotFoundException 
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Usuario } from '../usuario/entities/usuario.entity';
+import { v4 as uuidv4 } from 'uuid';
 import { UsuarioService } from '../usuario/usuario.service';
+import { Usuario } from '../usuario/entities/usuario.entity';
 import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
+
+// Interface para o usuário com os campos de reset
+interface UsuarioWithReset extends Usuario {
+  resetToken?: string | null;
+  resetTokenExpiry?: Date | null;
+}
 
 @Injectable()
 export class AuthService {
@@ -17,13 +29,13 @@ export class AuthService {
     if (!usuario) {
       return null;
     }
-  
+
     const isPasswordValid = await bcrypt.compare(senha, usuario.senha);
     if (!isPasswordValid) {
       return null;
     }
-  
-    return usuario; // Retorna o usuário se a senha estiver correta
+
+    return usuario;
   }
   
 
@@ -54,5 +66,39 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+  async forgotPassword(email: string) {
+    const usuario = await this.usuarioService.findByEmail(email);
+    if (!usuario) {
+      throw new NotFoundException('Email não encontrado.');
+    }
+
+    const resetToken = uuidv4();
+    const resetTokenExpiry = new Date(Date.now() + 3600000);
+
+    await this.usuarioService.saveResetToken(usuario.id, resetToken, resetTokenExpiry);
+
+    return {
+      message: 'Se um usuário com este email existir, um link de redefinição de senha será enviado.',
+      token: resetToken
+    };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const usuario = await this.usuarioService.findByResetToken(token) as UsuarioWithReset;
+    
+    if (!usuario || !usuario.resetTokenExpiry) {
+      throw new UnauthorizedException('Token inválido ou expirado.');
+    }
+
+    const tokenExpiry = new Date(usuario.resetTokenExpiry);
+    if (new Date() > tokenExpiry) {
+      throw new UnauthorizedException('Token expirado.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usuarioService.updatePassword(usuario.id, hashedPassword);
+
+    return { message: 'Senha atualizada com sucesso.' };
   }
 }

@@ -40,4 +40,29 @@ export class AuthController {
   async login(@Request() req) {
     return this.authService.login(req.user.email);
   }
+
+  @ApiOperation({
+    summary: 'Solicitar redefinição de senha',
+    description: 'Envia um email com o token para redefinição de senha',
+  })
+  @IsPublic()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @ApiOperation({
+    summary: 'Redefinir senha',
+    description: 'Redefine a senha usando o token recebido por email',
+  })
+  @IsPublic()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(
+    @Body('token') token: string,
+    @Body('senha') senha: string,
+  ) {
+    return this.authService.resetPassword(token, senha);
+  }
 }
