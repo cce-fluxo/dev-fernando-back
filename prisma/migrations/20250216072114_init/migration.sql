@@ -1,12 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `User` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropTable
-DROP TABLE "User";
-
 -- CreateTable
 CREATE TABLE "Estado" (
     "id" SERIAL NOT NULL,
@@ -180,6 +171,15 @@ CREATE TABLE "Prontuario" (
 );
 
 -- CreateTable
+CREATE TABLE "CampoDoProntuario" (
+    "ID_campo" SERIAL NOT NULL,
+    "ID_prontuario" INTEGER NOT NULL,
+    "Observações" TEXT NOT NULL,
+
+    CONSTRAINT "CampoDoProntuario_pkey" PRIMARY KEY ("ID_campo")
+);
+
+-- CreateTable
 CREATE TABLE "Instrucoes" (
     "id" SERIAL NOT NULL,
     "consultaId" INTEGER NOT NULL,
@@ -238,6 +238,9 @@ CREATE UNIQUE INDEX "Paciente_usuarioId_key" ON "Paciente"("usuarioId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Prontuario_consultaId_key" ON "Prontuario"("consultaId");
+
+-- CreateIndex
+CREATE INDEX "OBS" ON "CampoDoProntuario"("Observações");
 
 -- AddForeignKey
 ALTER TABLE "Estado" ADD CONSTRAINT "Estado_paisId_fkey" FOREIGN KEY ("paisId") REFERENCES "Pais"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -298,6 +301,9 @@ ALTER TABLE "Consulta" ADD CONSTRAINT "Consulta_pacienteId_fkey" FOREIGN KEY ("p
 
 -- AddForeignKey
 ALTER TABLE "Prontuario" ADD CONSTRAINT "Prontuario_consultaId_fkey" FOREIGN KEY ("consultaId") REFERENCES "Consulta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CampoDoProntuario" ADD CONSTRAINT "CampoDoProntuario_ID_prontuario_fkey" FOREIGN KEY ("ID_prontuario") REFERENCES "Prontuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Instrucoes" ADD CONSTRAINT "Instrucoes_consultaId_fkey" FOREIGN KEY ("consultaId") REFERENCES "Consulta"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

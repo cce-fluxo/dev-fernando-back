@@ -166,10 +166,20 @@ model Consulta {
 }
 
 model Prontuario {
-  id        Int      @id @default(autoincrement())
-  consultaId Int     @unique
-  consulta  Consulta @relation(fields: [consultaId], references: [id])
-  observacoes String
+  id             Int                @id @default(autoincrement())
+  consultaId    Int                @unique
+  consulta      Consulta           @relation(fields: [consultaId], references: [id])
+  observacoes   String
+  campoProntuarios CampoDoProntuario[] // Adicionando a relação oposta aqui
+}
+
+model CampoDoProntuario {
+  id          Int      @id @default(autoincrement()) @map("ID_campo")
+  prontuarioId Int      @map("ID_prontuario")
+  observacoes String   @map("Observações")
+  prontuario  Prontuario @relation(fields: [prontuarioId], references: [id])
+
+  @@index([observacoes], name: "OBS")
 }
 
 model Instrucoes {
