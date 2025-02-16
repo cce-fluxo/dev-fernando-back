@@ -9,9 +9,15 @@ export class CampoDoProntuarioService {
 
   async create(createCampoDoProntuarioDto: CreateCampoDoProntuarioDto) {
     return this.prisma.campoDoProntuario.create({
-      data: createCampoDoProntuarioDto,
+      data: {
+        observacoes: createCampoDoProntuarioDto.observacoes,
+        prontuario: {
+          connect: { id: createCampoDoProntuarioDto.prontuarioId }, // Relaciona o prontuário
+        },
+      },
     });
   }
+  
 
   async findAll() {
     return this.prisma.campoDoProntuario.findMany();
